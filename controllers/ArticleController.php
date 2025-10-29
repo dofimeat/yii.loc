@@ -5,6 +5,7 @@ namespace app\controllers;
 use app\models\Article;
 use yii\web\Controller;
 use app\models\ArticleForm;
+use app\models\Comment;
 use yii\web\NotFoundHttpException;
 use Yii;
 
@@ -14,16 +15,31 @@ class ArticleController extends Controller
 
     public $layout;
 
-    public function actionIndex($id)
-    {
-        $article = $this->findModel($id); 
+public function actionIndex($id)
+{
+    $article = $this->findModel($id);
+    $comments = Comment::find()->where(['article_id' => $article->id])->all(); 
 
-        $this->layout = 'story';
-        return $this->render('index', [
-            'article' => $article,
-            'author' => $article->author,
-        ]);
+    $newComment = new Comment();
+    
+    if ($newComment->load(Yii::$app->request->post())) {
+        $newComment->article_id = $article->id;
+        $newComment->user_id = Yii::$app->user->id;
+
+        if ($newComment->save()) {
+            Yii::$app->session->setFlash('success', 'Комментарий добавлен.');
+            return $this->redirect(['index', 'id' => $id]); 
+        }
     }
+
+    $this->layout = 'story';
+    return $this->render('index', [
+        'article' => $article,
+        'author' => $article->author,
+        'comments' => $comments, 
+        'newComment' => $newComment, 
+    ]);
+}
 
     public function actionAll()
     {
@@ -37,22 +53,35 @@ class ArticleController extends Controller
 
 public function actionAdd()
 {
+    if (Yii::$app->user->isGuest) {
+        return $this->redirect(['site/login']);
+    }
+
     $article = new Article();
     $this->layout = 'story';
-
+    
     if ($article->load(Yii::$app->request->post())) {
-        $article->user_id = Yii::$app->user->id; 
-        
-        if (empty($article->name)) {
-            Yii::$app->session->setFlash('error', 'Поле "Название" обязательно для заполнения.');
-            return $this->render('add', ['article' => $article]);
-        }
+        $article->user_id = Yii::$app->user->id;
 
-        if ($article->validate() && $article->save()) {
-            Yii::$app->session->setFlash('success', 'Статья успешно добавлена.');
-            return $this->redirect(['article/all']);
+        $imageFile = \yii\web\UploadedFile::getInstance($article, 'img');
+        if ($imageFile) {
+            $fileName = Yii::$app->security->generateRandomString(10) . '.' . $imageFile->extension;
+            $article->img = $fileName;
+        }
+        
+        if ($article->save()) {
+            if ($imageFile) {
+                $imagePath = Yii::getAlias('@webroot/img/');
+                if (!file_exists($imagePath)) {
+                    mkdir($imagePath, 0775, true);
+                }
+                $imageFile->saveAs($imagePath . $article->img);
+            }
+            
+            Yii::$app->session->setFlash('success', 'Статья успешно добавлена!');
+            return $this->redirect(['all']);
         } else {
-            Yii::$app->session->setFlash('error', 'Ошибка при сохранении статьи: ' . print_r($article->getErrors(), true));
+            Yii::$app->session->setFlash('error', 'Ошибка при сохранении статьи');
         }
     }
 
@@ -61,20 +90,48 @@ public function actionAdd()
 
 
 
-    public function actionUpdate($id)
-    {
-        $article = $this->findModel($id); 
-        $this->layout = 'story';
+public function actionUpdate($id)
+{
+    $article = $this->findModel($id);
+    $this->layout = 'story';
 
-        if ($article->load(Yii::$app->request->post()) && $article->save()) {
-            Yii::$app->session->setFlash('success', 'Статья успешно обновлена.');
-            return $this->redirect(['view', 'id' => $article->id]); 
+    if ($article->user_id !== Yii::$app->user->id) {
+        throw new NotFoundHttpException('Статья не найдена.');
+    }
+    $oldImage = $article->img; 
+    if ($article->load(Yii::$app->request->post())) {
+        $imageFile = \yii\web\UploadedFile::getInstance($article, 'img');
+
+        if ($imageFile) {
+            $fileName = Yii::$app->security->generateRandomString(10) . '.' . $imageFile->extension;
+            $article->img = $fileName;
+        } else {
+            $article->img = $oldImage; 
         }
 
-        return $this->render('update', [
-            'article' => $article,
-        ]);
+        if ($article->save()) {
+            
+            if ($imageFile) {
+                $imagePath = Yii::getAlias('@webroot/img/');
+                if (!file_exists($imagePath)) {
+                    mkdir($imagePath, 0777, true);
+                }
+                
+                $imageFile->saveAs($imagePath . $article->img);
+                
+                if ($oldImage && $oldImage != $article->img && file_exists($imagePath . $oldImage)) {
+                    @unlink($imagePath . $oldImage);
+                }
+            }
+
+            Yii::$app->session->setFlash('success', 'Статья успешно обновлена');
+            return $this->redirect(['index', 'id' => $id]);
+        }
     }
+
+    return $this->render('update', ['article' => $article]);
+}
+
 
 
     public function actionDelete($id)
@@ -98,14 +155,16 @@ public function actionAdd()
         throw new NotFoundHttpException('Статья не найдена.');
     }
 
-    public function actionMyArticles()
-    {
-        
-        if (Yii::$app->user->isGuest) {
-            return $this->redirect(['site/login']);
-        }
-
-        $articles = Article::find()->where(['user_id' => Yii::$app->user->id])->all();
-        return $this->render('my-articles', ['articles' => $articles]);
+public function actionMyArticles()
+{
+    if (Yii::$app->user->isGuest) {
+        return $this->redirect(['site/login']);
     }
+
+
+    $articles = Article::find()->where(['user_id' => Yii::$app->user->id])->all();
+    
+    return $this->render('my-articles', ['articles' => $articles]);
+}
+
 }

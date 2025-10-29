@@ -91,4 +91,9 @@ class User extends ActiveRecord implements IdentityInterface
         $this->password = password_hash($password, PASSWORD_DEFAULT);
     }
 
+    public function getLogin() 
+    {
+        return $this->login; 
+    }
+
 }
