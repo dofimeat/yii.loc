@@ -13,6 +13,13 @@ $config = [
         '@npm'   => '@vendor/npm-asset',
     ],
     // 'layout' => 'test',
+    
+    'modules' => [
+        'admin' => [
+            'class' => 'app\modules\admin\Module',
+        ],
+    ],
+
     'components' => [
         'request' => [
             // !!! insert a secret key in the following (if it is empty) - this is required by cookie validation
@@ -54,13 +61,7 @@ $config = [
             'article/all' => 'article/all',
             'article/<id:\d+>' => 'article/index',
             ],
-        ],
-        // 'modules' => [
-        //     'admin' => [
-        //         'class' => 'app\modules\admin\Module',
-        //     ],
-        // ],
-        
+        ],      
     ],
     'params' => $params,
 ];

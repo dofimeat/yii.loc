@@ -15,33 +15,33 @@ class ArticleController extends Controller
     private $articles;
 
     public $layout;
-
-    public function behaviors()
-    {
-        return [
-            'access' => [
-                'class' => AccessControl::class,
-                'ruleConfig' => [
-                    'class' => \yii\filters\AccessRule::class,
-                ],
-                'rules' => [
-                    [
-                        'allow' => true,
-                        'actions' => ['add', 'update', 'delete', 'article'], 
-                        'roles' => ['@'], 
-                    ],
-                    [
-                        'allow' => true,
-                        'actions' => ['all'], 
-                        'roles' => ['?'], 
-                    ],
-                    [
-                        'allow' => false, 
-                    ],
-                ],
-            ],
-        ];
-    }
+// доделать
+    // public function behaviors()
+    // {
+    //     return [
+    //         'access' => [
+    //             'class' => AccessControl::class,
+    //             'ruleConfig' => [
+    //                 'class' => \yii\filters\AccessRule::class,
+    //             ],
+    //             'rules' => [
+    //                 [
+    //                     'allow' => true,
+    //                     'actions' => ['add', 'update', 'delete', 'article'], 
+    //                     'roles' => ['@'], 
+    //                 ],
+    //                 [
+    //                     'allow' => true,
+    //                     'actions' => ['all'], 
+    //                     'roles' => ['?'], 
+    //                 ],
+    //                 [
+    //                     'allow' => false, 
+    //                 ],
+    //             ],
+    //         ],
+    //     ];
+    // }
 
 public function actionIndex($id)
 {
