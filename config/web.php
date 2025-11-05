@@ -55,6 +55,11 @@ $config = [
             'article/<id:\d+>' => 'article/index',
             ],
         ],
+        // 'modules' => [
+        //     'admin' => [
+        //         'class' => 'app\modules\admin\Module',
+        //     ],
+        // ],
         
     ],
     'params' => $params,
@@ -74,6 +79,12 @@ if (YII_ENV_DEV) {
         'class' => 'yii\gii\Module',
         // uncomment the following to add your IP if you are not connecting from localhost.
         //'allowedIPs' => ['127.0.0.1', '::1'],
+    ];
+}
+if (YII_ENV_DEV) {
+    $config['bootstrap'][] = 'gii';
+    $config['modules']['gii'] = [
+        'class' => 'yii\gii\Module',
     ];
 }
 

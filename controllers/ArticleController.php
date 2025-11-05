@@ -7,6 +7,7 @@ use yii\web\Controller;
 use app\models\ArticleForm;
 use app\models\Comment;
 use yii\web\NotFoundHttpException;
+use yii\filters\AccessControl;
 use Yii;
 
 class ArticleController extends Controller
@@ -14,6 +15,33 @@ class ArticleController extends Controller
     private $articles;
 
     public $layout;
+
+    public function behaviors()
+    {
+        return [
+            'access' => [
+                'class' => AccessControl::class,
+                'ruleConfig' => [
+                    'class' => \yii\filters\AccessRule::class,
+                ],
+                'rules' => [
+                    [
+                        'allow' => true,
+                        'actions' => ['add', 'update', 'delete', 'article'], 
+                        'roles' => ['@'], 
+                    ],
+                    [
+                        'allow' => true,
+                        'actions' => ['all'], 
+                        'roles' => ['?'], 
+                    ],
+                    [
+                        'allow' => false, 
+                    ],
+                ],
+            ],
+        ];
+    }
 
 public function actionIndex($id)
 {
@@ -155,16 +183,5 @@ public function actionUpdate($id)
         throw new NotFoundHttpException('Статья не найдена.');
     }
 
-public function actionMyArticles()
-{
-    if (Yii::$app->user->isGuest) {
-        return $this->redirect(['site/login']);
-    }
-
-
-    $articles = Article::find()->where(['user_id' => Yii::$app->user->id])->all();
-    
-    return $this->render('my-articles', ['articles' => $articles]);
-}
 
 }
