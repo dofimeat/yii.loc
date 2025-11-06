@@ -4,6 +4,7 @@ namespace app\modules\admin\controllers;
 
 use yii\web\Controller;
 use app\models\Article; 
+use Yii;
 
 class ArticleController extends Controller
 {
