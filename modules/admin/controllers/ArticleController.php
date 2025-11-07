@@ -4,10 +4,32 @@ namespace app\modules\admin\controllers;
 
 use yii\web\Controller;
 use app\models\Article; 
+use yii\filters\AccessControl;
 use Yii;
 
 class ArticleController extends Controller
 {
+    public function behaviors()
+    {
+        return [
+            'access' => [
+                'class' => AccessControl::class,
+                'rules' => [
+                    [
+                        'actions' => ['index', 'view', 'delete'], 
+                        'allow' => true,
+                        'matchCallback' => function ($rule, $action) {
+                            return !Yii::$app->user->isGuest && Yii::$app->user->identity->getIsAdmin();
+                        },
+                    ],
+                ],
+                'denyCallback' => function () {
+                    return Yii::$app->response->redirect('/');
+                },
+            ],
+        ];
+    }
+
     public function actionIndex()
     {
         $articles = Article::find()->all(); 
