@@ -18,6 +18,21 @@ class Article extends ActiveRecord
         ];
     }
 
+    public function attributeLabels()
+    {
+        return [
+            'id' => 'ID',
+            'user_id' => 'Автор',
+            'title' => 'Заголовок',
+            'content' => 'Содержание',
+            'img' => 'Изображение',
+            'created_at' => 'Дата создания',
+            'updated_at' => 'Дата обновления',
+            'status_id' => 'Статус',
+            'reject_reason' => 'Причина отклонения',
+        ];
+    }
+
     public static function tableName()
     {
         return 'article'; 
@@ -39,6 +54,11 @@ class Article extends ActiveRecord
             return true;
         }
         return false;
+    }
+
+    public function getUser()
+    {
+        return $this->hasOne(User::class, ['id' => 'user_id']);
     }
 
 }

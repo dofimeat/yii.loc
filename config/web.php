@@ -51,6 +51,11 @@ $config = [
                 ],
             ],
         ],
+        'formatter' => [
+            'dateFormat' => 'dd.MM.yyyy',
+            'datetimeFormat' => 'dd.MM.yyyy H:i',
+            'timeFormat' => 'H:i'
+            ],
         'db' => $db,
         
         'urlManager' => [

@@ -18,14 +18,14 @@ class ArticleController extends Controller
                     [
                         'actions' => ['index', 'view', 'delete'], 
                         'allow' => true,
-                        'matchCallback' => function ($rule, $action) {
-                            return !Yii::$app->user->isGuest && Yii::$app->user->identity->getIsAdmin();
-                        },
+                        // 'matchCallback' => function ($rule, $action) {
+                        //     return !Yii::$app->user->isGuest && Yii::$app->user->identity->getIsAdmin();
+                        // },
                     ],
                 ],
-                'denyCallback' => function () {
-                    return Yii::$app->response->redirect('/');
-                },
+                // 'denyCallback' => function () {
+                //     return Yii::$app->response->redirect('/');
+                // },
             ],
         ];
     }

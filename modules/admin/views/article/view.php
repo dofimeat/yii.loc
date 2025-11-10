@@ -10,6 +10,10 @@ $this->params['breadcrumbs'][] = $this->title;
 
 <p><?= Html::encode($article->content) ?></p>
 
+<?php if ($article->img): ?>
+    <img src="<?= Yii::getAlias('@web/img/' . Html::encode($article->img)) ?>" alt="<?= Html::encode($article->title) ?>" class="img-fluid" style="max-width: 450px; height: 450px;">
+<?php endif; ?>
+
 <p>
     <?= Html::a('Вернуться к списку', ['index'], ['class' => 'btn btn-success']) ?>
     <?= Html::a('Удалить', ['delete', 'id' => $article->id], [
