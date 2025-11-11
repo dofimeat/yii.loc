@@ -7,6 +7,8 @@ use app\modules\admin\models\ArticleSearch;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
+use app\models\Status;
+use yii;
 
 /**
  * ArticleGiiController implements the CRUD actions for Article model.
@@ -131,4 +133,39 @@ class ArticleGiiController extends Controller
 
         throw new NotFoundHttpException('The requested page does not exist.');
     }
+
+public function actionPublish($id)
+{
+    $model = $this->findModel($id);
+
+    if ($model->status_id === 1) {
+        $model->status_id = 2;
+
+        if ($model->save()) {
+            Yii::$app->session->setFlash('success', 'Статья опубликована');
+        } else {
+            Yii::$app->session->setFlash('error', 'Ошибка при публикации статьи');
+        }
+    } else {
+        Yii::$app->session->setFlash('warning', 'Статья не может быть опубликована, так как её статус не допускает эту операцию.');
+    }
+
+    return $this->redirect(['view', 'id' => $id]);
+}
+
+public function actionReject($id)
+{
+    $model = $this->findModel($id);
+    $model->status_id = 4;
+
+    if ($model->save()) {
+        Yii::$app->session->setFlash('success', 'Статья отклонена');
+    } else {
+        Yii::$app->session->setFlash('error', 'Ошибка при отклонении статьи');
+    }
+
+        return $this->redirect(['view', 'id' => $id]);
+    }
+
+
 }

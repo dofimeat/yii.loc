@@ -8,14 +8,15 @@ class Article extends ActiveRecord
 {
     public function rules()
     {
-        return [
-            [['title', 'content', 'user_id', 'name'], 'required'],
-            [['content'], 'string'],
-            [['user_id'], 'integer'],
-            [['created_at', 'updated_at'], 'safe'],
-            [['title'], 'string', 'max' => 255],
-            ['img', 'file', 'extensions' => ['png', 'jpg', 'jpeg']],
-        ];
+       return [
+           [['status_id'], 'integer'], 
+           [['title', 'content', 'user_id', 'name'], 'required'],
+           [['content'], 'string'],
+           [['user_id'], 'integer'],
+           [['created_at', 'updated_at'], 'safe'],
+           [['title'], 'string', 'max' => 255],
+           ['img', 'file', 'extensions' => ['png', 'jpg', 'jpeg']],
+       ];
     }
 
     public function attributeLabels()
@@ -61,4 +62,8 @@ class Article extends ActiveRecord
         return $this->hasOne(User::class, ['id' => 'user_id']);
     }
 
+    public function getStatus()
+    {
+        return $this->hasOne(Status::class, ['id' => 'status_id']);
+    }
 }

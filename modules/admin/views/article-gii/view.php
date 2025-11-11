@@ -50,6 +50,10 @@ $this->params['breadcrumbs'][] = $this->title;
                 // 'visible' => $model->updated_at != $model->created_at, 
             ],
             [
+                'attribute' => 'status_id',
+                'value' => $model->status ? $model->status->name : 'Неизвестный статус',
+            ],
+            [
                 'attribute' => 'img',
                 'format' => 'raw',
                 'value' => Html::img($model->img, ['alt' => 'изображение', 'style' => 'max-width:100%;']),
