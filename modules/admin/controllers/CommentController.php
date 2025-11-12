@@ -2,18 +2,16 @@
 
 namespace app\modules\admin\controllers;
 
-use app\models\Article;
-use app\modules\admin\models\ArticleSearch;
+use app\models\Comment;
+use app\modules\admin\models\CommentSearch;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
-use app\models\Status;
-use yii;
 
 /**
- * ArticleGiiController implements the CRUD actions for Article model.
+ * CommentController implements the CRUD actions for Comment model.
  */
-class ArticleGiiController extends Controller
+class CommentController extends Controller
 {
     /**
      * @inheritDoc
@@ -34,13 +32,13 @@ class ArticleGiiController extends Controller
     }
 
     /**
-     * Lists all Article models.
+     * Lists all Comment models.
      *
      * @return string
      */
     public function actionIndex()
     {
-        $searchModel = new ArticleSearch();
+        $searchModel = new CommentSearch();
         $dataProvider = $searchModel->search($this->request->queryParams);
 
         return $this->render('index', [
@@ -50,7 +48,7 @@ class ArticleGiiController extends Controller
     }
 
     /**
-     * Displays a single Article model.
+     * Displays a single Comment model.
      * @param int $id
      * @return string
      * @throws NotFoundHttpException if the model cannot be found
@@ -63,13 +61,13 @@ class ArticleGiiController extends Controller
     }
 
     /**
-     * Creates a new Article model.
+     * Creates a new Comment model.
      * If creation is successful, the browser will be redirected to the 'view' page.
      * @return string|\yii\web\Response
      */
     public function actionCreate()
     {
-        $model = new Article();
+        $model = new Comment();
 
         if ($this->request->isPost) {
             if ($model->load($this->request->post()) && $model->save()) {
@@ -85,7 +83,7 @@ class ArticleGiiController extends Controller
     }
 
     /**
-     * Updates an existing Article model.
+     * Updates an existing Comment model.
      * If update is successful, the browser will be redirected to the 'view' page.
      * @param int $id
      * @return string|\yii\web\Response
@@ -105,7 +103,7 @@ class ArticleGiiController extends Controller
     }
 
     /**
-     * Deletes an existing Article model.
+     * Deletes an existing Comment model.
      * If deletion is successful, the browser will be redirected to the 'index' page.
      * @param int $id
      * @return \yii\web\Response
@@ -119,62 +117,18 @@ class ArticleGiiController extends Controller
     }
 
     /**
-     * Finds the Article model based on its primary key value.
+     * Finds the Comment model based on its primary key value.
      * If the model is not found, a 404 HTTP exception will be thrown.
      * @param int $id
-     * @return Article the loaded model
+     * @return Comment the loaded model
      * @throws NotFoundHttpException if the model cannot be found
      */
     protected function findModel($id)
     {
-        if (($model = Article::findOne(['id' => $id])) !== null) {
+        if (($model = Comment::findOne(['id' => $id])) !== null) {
             return $model;
         }
 
         throw new NotFoundHttpException('The requested page does not exist.');
     }
-
-public function actionPublish($id)
-{
-    $model = $this->findModel($id);
-
-    if ($model->status_id == 1 || $model->status_id == 3) { 
-        $model->status_id = 2; 
-
-        if ($model->save()) {
-            Yii::$app->session->setFlash('success', 'Статья опубликована');
-        } else {
-            Yii::$app->session->setFlash('error', 'Ошибка при публикации статьи');
-        }
-    } else {
-        Yii::$app->session->setFlash('warning', 'Статья не может быть опубликована, так как её статус не допускает эту операцию.');
-    }
-
-    return $this->redirect(['view', 'id' => $id]);
-}
-
-
-public function actionReject(int $id) 
-{
-    $model = $this->findModel($id);
-    
-    $model->scenario = Article::SCENARIO_REJECT; 
-    
-    if ($model->load(Yii::$app->request->post())) {
-        $model->status_id = 4; 
-
-        if ($model->save()) {
-            Yii::$app->session->setFlash('success', 'Статья отклонена. Причина: ' . $model->reject_reason);
-            return $this->redirect(['update', 'id' => $model->id]); 
-        } else {
-            Yii::$app->session->setFlash('error', 'Ошибка при отклонении статьи');
-        }
-    }
-
-    return $this->render('update', [
-        'model' => $model,
-    ]);
-}
-
-
 }

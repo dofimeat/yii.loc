@@ -6,6 +6,9 @@ use yii\db\ActiveRecord;
 
 class Article extends ActiveRecord
 {
+
+    public const SCENARIO_REJECT = 'reject';
+
     public function rules()
     {
        return [
@@ -16,6 +19,7 @@ class Article extends ActiveRecord
            [['created_at', 'updated_at'], 'safe'],
            [['title'], 'string', 'max' => 255],
            ['img', 'file', 'extensions' => ['png', 'jpg', 'jpeg']],
+           ['reject_reason', 'required', 'on' => self::SCENARIO_REJECT],
        ];
     }
 

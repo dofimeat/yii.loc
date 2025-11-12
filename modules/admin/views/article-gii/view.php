@@ -51,13 +51,19 @@ $this->params['breadcrumbs'][] = $this->title;
             ],
             [
                 'attribute' => 'status_id',
-                'value' => $model->status ? $model->status->name : 'Неизвестный статус',
+                'value' =>$model->status->name,
+            ],
+            [
+                'label' => 'Причина отклонения',
+                'value' => $model->reject_reason,
+                'visible' => $model->status_id == 4,
             ],
             [
                 'attribute' => 'img',
                 'format' => 'raw',
-                'value' => Html::img($model->img, ['alt' => 'изображение', 'style' => 'max-width:100%;']),
+                'value' => Html::img(Yii::getAlias('@web/img/') . $model->img, ['alt' => 'Изображение', 'style' => 'max-width:50%;']),
             ],
+            
         ],
     ]) ?>
 

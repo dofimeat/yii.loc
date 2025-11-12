@@ -15,7 +15,7 @@ class Comment extends ActiveRecord
     public function rules()
     {
         return [
-            [['article_id', 'user_id', 'content'], 'required'],
+            [['content', 'article_id', 'user_id'], 'required'],
             ['content', 'string'],
             [['article_id', 'user_id'], 'integer'],
             [['created_at'], 'safe']
@@ -31,5 +31,11 @@ public function getUser()
 {
     return $this->hasOne(User::class, ['id' => 'user_id']);
 }
+
+public function getStatus()
+{
+    return $this->hasOne(CommentStatus::class, ['id' => 'status_id']);
+}
+
 
 }
