@@ -65,6 +65,20 @@ class CommentController extends Controller
      * If creation is successful, the browser will be redirected to the 'view' page.
      * @return string|\yii\web\Response
      */
+
+    public function actionPublish($id)
+{
+    $model = $this->findModel($id);
+
+    $model->status_id = 2; 
+    
+    if ($model->save()) {
+        return $this->redirect(['view', 'id' => $model->id]);
+    }
+
+    return $this->redirect(['index']);
+    }
+
     public function actionCreate()
     {
         $model = new Comment();
