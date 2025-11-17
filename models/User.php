@@ -8,10 +8,30 @@ use yii\web\IdentityInterface;
 
 class User extends ActiveRecord implements IdentityInterface
 {
+
+    const SCENARIO_BLOCK = 'block';
+    const STATUS_ACTIVE = 1;
+    const STATUS_BLOCKED = 0;
+
     public static function tableName()
     {
         return 'user'; 
     }
+
+    public function rules()
+    {
+        return [
+            [['ban_reason'], 'string', 'max' => 255],
+            ['ban_reason', 'required', 'on' => self::SCENARIO_BLOCK],
+            ['ban_reason', 'string', 'max' => 255, 'on' => self::SCENARIO_BLOCK],
+        ];
+    }
+
+        public function isBlocked()
+    {
+        return $this->status_id === self::STATUS_BLOCKED;
+    }
+
 
     public function getArticles()
     {
@@ -96,4 +116,13 @@ class User extends ActiveRecord implements IdentityInterface
         return $this->login; 
     }
 
+    public function getArticlesCount()
+    {
+    return $this->hasMany(Article::class, ['user_id' => 'id'])->count();
+    }
+
+    public function getCommentsCount()
+    {
+    return $this->hasMany(Comment::class, ['user_id' => 'id'])->count();
+    }
 }

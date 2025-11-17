@@ -3,6 +3,7 @@
 namespace app\controllers;
 
 use app\models\Article;
+use app\models\User;
 use yii\web\Controller;
 use app\models\ArticleForm;
 use app\models\Comment;
@@ -16,32 +17,31 @@ class ArticleController extends Controller
 
     public $layout;
 // доделать
-    // public function behaviors()
-    // {
-    //     return [
-    //         'access' => [
-    //             'class' => AccessControl::class,
-    //             'ruleConfig' => [
-    //                 'class' => \yii\filters\AccessRule::class,
-    //             ],
-    //             'rules' => [
-    //                 [
-    //                     'allow' => true,
-    //                     'actions' => ['add', 'update', 'delete', 'article'], 
-    //                     'roles' => ['@'], 
-    //                 ],
-    //                 [
-    //                     'allow' => true,
-    //                     'actions' => ['all'], 
-    //                     'roles' => ['?'], 
-    //                 ],
-    //                 [
-    //                     'allow' => false, 
-    //                 ],
-    //             ],
-    //         ],
-    //     ];
-    // }
+public function behaviors()
+{
+    return [
+        'access' => [
+            'class' => AccessControl::class,
+            'ruleConfig' => [
+                'class' => \yii\filters\AccessRule::class,
+            ],
+            'rules' => [
+                [
+                    'allow' => true,
+                    'actions' => ['view', 'index'], 
+                    'roles' => ['?','@'], 
+                ],
+                [
+                    'allow' => false, 
+                    'actions' => ['add', 'update', 'delete'], 
+                ],
+                [
+                    'allow' => false, 
+                ],
+            ],
+        ],
+    ];
+}
 
 public function actionIndex($id)
 {
