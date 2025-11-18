@@ -29,12 +29,26 @@ $this->params['breadcrumbs'][] = $this->title;
                         </p>
                         
                         <p class="card-text">
-                            Статей: <?= $user->getArticlesCount() ?>
+                            Статей: <?= Html::a($user->getArticlesCount(), ['article/index', 'user_id' => $user->id, 'ArticleSearch[status_id]' => 4]) ?>
                         </p>
-                        
+
                         <p class="card-text">
-                            Комментариев: <?= $user->getCommentsCount() ?>
+                            Комментариев: <?= Html::a($user->getCommentsCount(), ['comment/index', 'user_id' => $user->id]) ?>
                         </p>
+
+                        <p class="card-text">
+                            Отклоненные статьи: <?= Html::encode($user->getRejectedArticlesCount()) ?>
+                        </p>
+
+                        <p class="card-text">
+                            Удаленные комментарии: <?= Html::encode($user->getDeletedCommentsCount()) ?>
+                        </p>
+
+                        <?php if ($user->isBlocked()): ?>
+                            <div class="alert alert-danger">
+                                Пользователь заблокирован.
+                            </div>
+                        <?php endif; ?>
 
                         <div>
                             <?= Html::a('Просмотр', ['view', 'id' => $user->id], ['class' => 'btn btn-info']) ?>

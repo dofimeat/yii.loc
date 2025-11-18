@@ -3,6 +3,8 @@
 namespace app\modules\admin\controllers;
 
 use app\models\Article;
+use app\models\User;
+use app\models\Comment;
 use app\modules\admin\models\ArticleSearch;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
@@ -38,14 +40,33 @@ class ArticleGiiController extends Controller
      *
      * @return string
      */
-    public function actionIndex()
+    public function actionIndex($user_id)
     {
         $searchModel = new ArticleSearch();
         $dataProvider = $searchModel->search($this->request->queryParams);
+    
+        $user = User::findOne($user_id);
+    
+        $articleCount = Article::find()->where(['user_id' => $user_id])->count();
+        $commentCount = Comment::find()->where(['user_id' => $user_id])->count();
+        $rejectedArticlesCount = Article::find()->where(['user_id' => $user_id, 'status' => 'rejected'])->count();
+        $deletedCommentsCount = Comment::find()->where(['user_id' => $user_id, 'status' => 'deleted'])->count();
+    
+        $isBlocked = false;
+        $threshold = 5; 
+        if ($rejectedArticlesCount > $threshold || $deletedCommentsCount > $threshold) {
+            $isBlocked = true;
+        }
 
         return $this->render('index', [
             'searchModel' => $searchModel,
             'dataProvider' => $dataProvider,
+            'user' => $user,
+            'articleCount' => $articleCount,
+            'commentCount' => $commentCount,
+            'rejectedArticlesCount' => $rejectedArticlesCount,
+            'deletedCommentsCount' => $deletedCommentsCount,
+            'isBlocked' => $isBlocked,
         ]);
     }
 

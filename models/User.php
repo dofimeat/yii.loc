@@ -125,4 +125,23 @@ class User extends ActiveRecord implements IdentityInterface
     {
     return $this->hasMany(Comment::class, ['user_id' => 'id'])->count();
     }
+
+        public function getRejectedArticlesCount()
+    {
+        return Article::find()->where(['user_id' => $this->id, 'status_id' => 'rejected'])->count();
+    }
+
+    public function getDeletedCommentsCount()
+    {
+        return Comment::find()->where(['user_id' => $this->id, 'status_id' => 'deleted'])->count();
+    }
+
+    public function actionBlock()
+    {
+        $rejectedArticlesCount = $this->getRejectedArticlesCount();
+        $deletedCommentsCount = $this->getDeletedCommentsCount();
+        $threshold = 5; 
+        
+        return $rejectedArticlesCount > $threshold || $deletedCommentsCount > $threshold;
+    }
 }
