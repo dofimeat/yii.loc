@@ -11,7 +11,7 @@ use Yii;
 
 class AccountController extends Controller
 {
-    public $layout = 'story';
+    // public $layout = 'story';
 
     public function actionMyArticles()
     {
