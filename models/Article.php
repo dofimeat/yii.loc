@@ -2,12 +2,14 @@
 
 namespace app\models;
 
+use Yii;
 use yii\db\ActiveRecord;
+use yii\web\UploadedFile;
 
 class Article extends ActiveRecord
 {
-
     public const SCENARIO_REJECT = 'reject';
+    public $imageFile;
 
     public function rules()
     {
@@ -18,7 +20,9 @@ class Article extends ActiveRecord
            [['user_id'], 'integer'],
            [['created_at', 'updated_at'], 'safe'],
            [['title'], 'string', 'max' => 255],
-           ['img', 'file', 'extensions' => ['png', 'jpg', 'jpeg']],
+           
+           [['imageFile'], 'file', 'extensions' => 'png, jpg, jpeg', 'maxSize' => 1024 * 1024 * 5], // 5MB
+           
            ['reject_reason', 'required', 'on' => self::SCENARIO_REJECT],
        ];
     }
@@ -29,8 +33,10 @@ class Article extends ActiveRecord
             'id' => 'ID',
             'user_id' => 'Автор',
             'title' => 'Заголовок',
+            'name' => 'Название',
             'content' => 'Содержание',
             'img' => 'Изображение',
+            'imageFile' => 'Загрузить изображение',
             'created_at' => 'Дата создания',
             'updated_at' => 'Дата обновления',
             'status_id' => 'Статус',
@@ -48,18 +54,59 @@ class Article extends ActiveRecord
         return $this->hasOne(User::class, ['id' => 'user_id']);
     }
 
-    public function beforeSave($insert)
-    {
-        if (parent::beforeSave($insert)) {
-            if ($insert) {
-                $this->created_at = date('Y-m-d H:i:s'); 
-            } else {
-                $this->updated_at = date('Y-m-d H:i:s'); 
-            }
-            return true;
+public function beforeSave($insert)
+{
+    if (parent::beforeSave($insert)) {
+        if (empty($this->title) && !empty($this->name)) {
+            $this->title = $this->name;
         }
-        return false;
+        
+        $this->imageFile = UploadedFile::getInstance($this, 'imageFile');
+        if ($this->imageFile) {
+            $basePath = Yii::getAlias('@webroot');
+            $dir = $basePath . '/img/';
+            
+            if (!is_dir($dir)) {
+                mkdir($dir, 0775, true);
+            }
+            
+            $fileName = $this->generateUniqueFileName($this->imageFile->baseName, $this->imageFile->extension);
+            $filePath = $dir . $fileName;
+            
+            if ($this->imageFile->saveAs($filePath)) {
+                if (!$insert && $this->img && file_exists($basePath . $this->img)) {
+                    unlink($basePath . $this->img);
+                }
+                $this->img = '/img/' . $fileName;
+            }
+        }
+        
+        if ($insert) {
+            $this->created_at = date('Y-m-d H:i:s');
+            if (empty($this->status_id)) {
+                $this->status_id = 1; 
+            }
+        } else {
+            $this->updated_at = date('Y-m-d H:i:s');
+        }
+        return true;
     }
+    return false;
+}
+
+private function generateUniqueFileName($baseName, $extension)
+{
+    $dir = Yii::getAlias('@webroot') . '/img/';
+    $fileName = $baseName . '.' . $extension;
+    $counter = 1;
+    
+    while (file_exists($dir . $fileName)) {
+        $fileName = $baseName . '_' . $counter . '.' . $extension;
+        $counter++;
+    }
+    
+    return $fileName;
+}
 
     public function getUser()
     {
@@ -69,5 +116,35 @@ class Article extends ActiveRecord
     public function getStatus()
     {
         return $this->hasOne(Status::class, ['id' => 'status_id']);
+    }
+
+public function getImageUrl()
+{
+    if ($this->img) {
+        $cleanPath = str_replace(['web/', 'img/', 'uploads/'], '', $this->img);
+        
+        if (file_exists('@web/img/' . $cleanPath)) {
+            return '/@img1/' . $cleanPath;
+        }
+        if (file_exists('@web/uploads/' . $cleanPath)) {
+            return '/uploads/' . $cleanPath;
+        }
+        if (file_exists($this->img)) {
+            return '/' . $this->img;
+        }
+        return '@web/img/' . $cleanPath;
+    }
+    
+    return '/img/no-image.jpg';
+}
+
+    public function getCommentsCount()
+    {
+        return $this->getComments()->count();
+    }
+
+    public function getComments()
+    {
+        return $this->hasMany(Comment::class, ['article_id' => 'id']);
     }
 }

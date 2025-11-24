@@ -1,11 +1,9 @@
 <?php
 
-use app\models\Article;
 use yii\helpers\Html;
-use yii\helpers\Url;
-use yii\grid\ActionColumn;
 use yii\widgets\ListView;
 use yii\widgets\Pjax;
+
 /** @var yii\web\View $this */
 /** @var app\modules\account\models\ArticleSearch $searchModel */
 /** @var yii\data\ActiveDataProvider $dataProvider */
@@ -25,8 +23,8 @@ $this->params['breadcrumbs'][] = $this->title;
     <div class="row">
         <?= ListView::widget([
             'dataProvider' => $dataProvider,
-            'itemView' => 'index',
-            'layout' => "{items}\n{pager}",
+            'itemView' => '_item',
+            'layout' => "{items}\n<div class=\"col-12\">{pager}</div>",
             'options' => ['class' => 'col-12'],
             'itemOptions' => ['class' => 'col-lg-4 col-md-6 mb-4'],
             'emptyText' => 'У вас пока нет статей.',
@@ -35,4 +33,4 @@ $this->params['breadcrumbs'][] = $this->title;
     </div>
 
     <?php Pjax::end(); ?>
-</div>>
+</div>
