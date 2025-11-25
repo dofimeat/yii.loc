@@ -84,25 +84,35 @@ class ArticleController extends Controller
      * @return string
      * @throws NotFoundHttpException if the model cannot be found
      */
-    public function actionView($id)
-    {
-        // Проверка доступа выполняется в behaviors через matchCallback
-        // Дополнительная проверка не нужна
-        
-        $model = $this->findModel($id);
-        $comment = new Comment();
-        $comment->article_id = $id;
-        
-        $searchModel = new CommentSearch();
-        $searchParams = ['CommentSearch' => ['article_id' => $id]];
-        $commentsDataProvider = $searchModel->search($searchParams);
-        
-        return $this->render('view', [
-            'model' => $model,
-            'comment' => $comment,
-            'commentsDataProvider' => $commentsDataProvider,
-        ]);
+public function actionView($id)
+{
+    $model = $this->findModel($id);
+    
+    if ($model->user_id !== Yii::$app->user->id) {
+        throw new NotFoundHttpException('У вас нет доступа к этой странице.');
     }
+    
+    $comment = new Comment();
+    $comment->article_id = $id;
+    
+    if ($comment->load(Yii::$app->request->post())) {
+        $comment->user_id = Yii::$app->user->id; 
+        if ($comment->save()) {
+            Yii::$app->session->setFlash('success', 'Комментарий добавлен успешно!');
+            return $this->refresh();
+        }
+    }
+    
+    $searchModel = new CommentSearch();
+    $searchParams = ['CommentSearch' => ['article_id' => $id]];
+    $commentsDataProvider = $searchModel->search($searchParams);
+    
+    return $this->render('view', [
+        'model' => $model,
+        'comment' => $comment,
+        'commentsDataProvider' => $commentsDataProvider,
+    ]);
+}
 
     /**
      * Creates a new Article model.

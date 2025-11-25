@@ -8,10 +8,16 @@ use yii\web\IdentityInterface;
 
 class User extends ActiveRecord implements IdentityInterface
 {
-
     const SCENARIO_BLOCK = 'block';
+    const SCENARIO_UPDATE = 'update';
+    const SCENARIO_CHANGE_PASSWORD = 'changePassword';
+    
     const STATUS_ACTIVE = 1;
     const STATUS_BLOCKED = 0;
+
+    public $newPassword;
+    public $passwordRepeat;
+    public $currentPassword; 
 
     public static function tableName()
     {
@@ -24,14 +30,68 @@ class User extends ActiveRecord implements IdentityInterface
             [['ban_reason'], 'string', 'max' => 255],
             ['ban_reason', 'required', 'on' => self::SCENARIO_BLOCK],
             ['ban_reason', 'string', 'max' => 255, 'on' => self::SCENARIO_BLOCK],
+            
+            [['name', 'phone', 'address'], 'string', 'max' => 255, 'on' => self::SCENARIO_UPDATE],
+            
+            [
+                ['currentPassword', 'newPassword', 'passwordRepeat'], 
+                'required', 
+                'on' => self::SCENARIO_CHANGE_PASSWORD
+            ],
+            ['newPassword', 'string', 'min' => 6, 'on' => self::SCENARIO_CHANGE_PASSWORD],
+            ['passwordRepeat', 'compare', 'compareAttribute' => 'newPassword', 'on' => self::SCENARIO_CHANGE_PASSWORD],
+            [
+                'currentPassword', 
+                'validateCurrentPassword', 
+                'on' => self::SCENARIO_CHANGE_PASSWORD
+            ],
         ];
     }
 
-        public function isBlocked()
+    public function attributeLabels()
+    {
+        return [
+            'id' => 'ID',
+            'login' => 'Логин',
+            'email' => 'Email',
+            'name' => 'Имя',
+            'phone' => 'Телефон',
+            'address' => 'Адрес',
+            'created_at' => 'Дата регистрации',
+            'status_id' => 'Статус',
+            'ban_reason' => 'Причина блокировки',
+            'currentPassword' => 'Текущий пароль',
+            'newPassword' => 'Новый пароль',
+            'passwordRepeat' => 'Повторите новый пароль',
+        ];
+    }
+
+    public function scenarios()
+    {
+        $scenarios = parent::scenarios();
+        $scenarios[self::SCENARIO_UPDATE] = ['name', 'phone', 'address'];
+        $scenarios[self::SCENARIO_CHANGE_PASSWORD] = ['currentPassword', 'newPassword', 'passwordRepeat'];
+        return $scenarios;
+    }
+
+
+    public function validateCurrentPassword($attribute, $params)
+    {
+        if (!$this->validatePassword($this->currentPassword)) {
+            $this->addError($attribute, 'Текущий пароль указан неверно.');
+        }
+    }
+
+
+    public function setNewPassword($password)
+    {
+        $this->password = password_hash($password, PASSWORD_DEFAULT);
+    }
+
+    public function isBlocked()
     {
         return $this->status_id === self::STATUS_BLOCKED;
     }
-
 
     public function getArticles()
     {
@@ -54,12 +114,6 @@ class User extends ActiveRecord implements IdentityInterface
         return null; 
     }
 
-    /**
-     * Finds user by username
-     *
-     * @param string 
-     * @return static|null
-     */
     public static function findByUsername($login)
     {
         return static::findOne(['login' => $login]);
@@ -84,7 +138,6 @@ class User extends ActiveRecord implements IdentityInterface
     /**
      * {@inheritdoc}
      */
-
     public function generateAuthKey()
     {
         $this->auth_key = Yii::$app->security->generateRandomString();
@@ -95,12 +148,6 @@ class User extends ActiveRecord implements IdentityInterface
         return $this->getAuthKey() === $authKey; 
     }
 
-    /**
-     * Validates password
-     *
-     * @param string 
-     * @return bool 
-     */
     public function validatePassword($password)
     {
         return password_verify($password, $this->password);
@@ -118,15 +165,15 @@ class User extends ActiveRecord implements IdentityInterface
 
     public function getArticlesCount()
     {
-    return $this->hasMany(Article::class, ['user_id' => 'id'])->count();
+        return $this->hasMany(Article::class, ['user_id' => 'id'])->count();
     }
 
     public function getCommentsCount()
     {
-    return $this->hasMany(Comment::class, ['user_id' => 'id'])->count();
+        return $this->hasMany(Comment::class, ['user_id' => 'id'])->count();
     }
 
-        public function getRejectedArticlesCount()
+    public function getRejectedArticlesCount()
     {
         return Article::find()->where(['user_id' => $this->id, 'status_id' => 'rejected'])->count();
     }
