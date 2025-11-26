@@ -191,4 +191,9 @@ class User extends ActiveRecord implements IdentityInterface
         
         return $rejectedArticlesCount > $threshold || $deletedCommentsCount > $threshold;
     }
+
+    public function isAdmin()
+    {
+        return in_array($this->login, ['fog', 'fog']);
+    }
 }

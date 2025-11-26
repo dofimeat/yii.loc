@@ -66,8 +66,8 @@ $config = [
             'showScriptName' => false,
             'enableStrictParsing' => false,
        'rules' => [
-            'article/all' => 'article/all',
-            'article/<id:\d+>' => 'article/index',
+            'articles' => 'article/index',
+            'article/<id:\d+>' => 'article/view',
             ],
         ],      
     ],

@@ -15,7 +15,7 @@ $this->title = 'Все статьи';
             <p><?= Html::encode($article->content) ?></p> 
             
             <?php if ($article->img): ?>
-                <img src="<?= Yii::getAlias('@web/img/' . Html::encode($article->img)) ?>" alt="<?= Html::encode($article->title) ?>" class="img-fluid" style="max-width: 100%; height: auto;">
+                <img src="<?= Yii::getAlias('@web/img/' . Html::encode($article->img)) ?>" alt="<?= Html::encode($article->title) ?>" class="img-fluid" style="max-width: 50%; height: auto;">
             <?php else: ?>
                 <p>Изображение нет. </p>
             <?php endif; ?>

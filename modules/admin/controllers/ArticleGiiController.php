@@ -40,17 +40,24 @@ class ArticleGiiController extends Controller
      *
      * @return string
      */
-    public function actionIndex($user_id)
+    public function actionIndex($user_id = null) 
     {
         $searchModel = new ArticleSearch();
         $dataProvider = $searchModel->search($this->request->queryParams);
     
-        $user = User::findOne($user_id);
-    
-        $articleCount = Article::find()->where(['user_id' => $user_id])->count();
-        $commentCount = Comment::find()->where(['user_id' => $user_id])->count();
-        $rejectedArticlesCount = Article::find()->where(['user_id' => $user_id, 'status' => 'rejected'])->count();
-        $deletedCommentsCount = Comment::find()->where(['user_id' => $user_id, 'status' => 'deleted'])->count();
+        if ($user_id) {
+            $user = User::findOne($user_id);
+            $articleCount = Article::find()->where(['user_id' => $user_id])->count();
+            $commentCount = Comment::find()->where(['user_id' => $user_id])->count();
+            $rejectedArticlesCount = Article::find()->where(['user_id' => $user_id, 'status' => 'rejected'])->count();
+            $deletedCommentsCount = Comment::find()->where(['user_id' => $user_id, 'status' => 'deleted'])->count();
+        } else {
+            $user = null;
+            $articleCount = Article::find()->count();
+            $commentCount = Comment::find()->count();
+            $rejectedArticlesCount = 0;
+            $deletedCommentsCount = 0;
+        }
     
         $isBlocked = false;
         $threshold = 5; 
@@ -93,15 +100,26 @@ class ArticleGiiController extends Controller
         $model = new Article();
 
         if ($this->request->isPost) {
-            if ($model->load($this->request->post()) && $model->save()) {
-                return $this->redirect(['view', 'id' => $model->id]);
+            if ($model->load($this->request->post())) {
+                if (empty($model->user_id)) {
+                    $model->user_id = 1; 
+                }
+                
+                if ($model->save()) {
+                    Yii::$app->session->setFlash('success', 'Статья успешно создана!');
+                    return $this->redirect(['view', 'id' => $model->id]);
+                }
             }
         } else {
             $model->loadDefaultValues();
+            $model->user_id = 1;
         }
+
+        $users = User::find()->select(['id', 'login'])->indexBy('id')->column();
 
         return $this->render('create', [
             'model' => $model,
+            'users' => $users,
         ]);
     }
 
@@ -117,11 +135,15 @@ class ArticleGiiController extends Controller
         $model = $this->findModel($id);
 
         if ($this->request->isPost && $model->load($this->request->post()) && $model->save()) {
+            Yii::$app->session->setFlash('success', 'Статья успешно обновлена!');
             return $this->redirect(['view', 'id' => $model->id]);
         }
 
+        $users = User::find()->select(['id', 'login'])->indexBy('id')->column();
+
         return $this->render('update', [
             'model' => $model,
+            'users' => $users,
         ]);
     }
 
@@ -135,7 +157,7 @@ class ArticleGiiController extends Controller
     public function actionDelete($id)
     {
         $this->findModel($id)->delete();
-
+        Yii::$app->session->setFlash('success', 'Статья успешно удалена!');
         return $this->redirect(['index']);
     }
 
@@ -155,47 +177,44 @@ class ArticleGiiController extends Controller
         throw new NotFoundHttpException('The requested page does not exist.');
     }
 
-public function actionPublish($id)
-{
-    $model = $this->findModel($id);
+    public function actionPublish($id)
+    {
+        $model = $this->findModel($id);
 
-    if ($model->status_id == 1 || $model->status_id == 3) { 
-        $model->status_id = 2; 
+        if ($model->status_id == 1 || $model->status_id == 3) { 
+            $model->status_id = 2; 
 
-        if ($model->save()) {
-            Yii::$app->session->setFlash('success', 'Статья опубликована');
+            if ($model->save()) {
+                Yii::$app->session->setFlash('success', 'Статья опубликована');
+            } else {
+                Yii::$app->session->setFlash('error', 'Ошибка при публикации статьи');
+            }
         } else {
-            Yii::$app->session->setFlash('error', 'Ошибка при публикации статьи');
+            Yii::$app->session->setFlash('warning', 'Статья не может быть опубликована, так как её статус не допускает эту операцию.');
         }
-    } else {
-        Yii::$app->session->setFlash('warning', 'Статья не может быть опубликована, так как её статус не допускает эту операцию.');
+
+        return $this->redirect(['view', 'id' => $id]);
     }
 
-    return $this->redirect(['view', 'id' => $id]);
-}
+    public function actionReject(int $id) 
+    {
+        $model = $this->findModel($id);
+        
+        $model->scenario = Article::SCENARIO_REJECT; 
+        
+        if ($model->load(Yii::$app->request->post())) {
+            $model->status_id = 4; 
 
-
-public function actionReject(int $id) 
-{
-    $model = $this->findModel($id);
-    
-    $model->scenario = Article::SCENARIO_REJECT; 
-    
-    if ($model->load(Yii::$app->request->post())) {
-        $model->status_id = 4; 
-
-        if ($model->save()) {
-            Yii::$app->session->setFlash('success', 'Статья отклонена. Причина: ' . $model->reject_reason);
-            return $this->redirect(['update', 'id' => $model->id]); 
-        } else {
-            Yii::$app->session->setFlash('error', 'Ошибка при отклонении статьи');
+            if ($model->save()) {
+                Yii::$app->session->setFlash('success', 'Статья отклонена. Причина: ' . $model->reject_reason);
+                return $this->redirect(['update', 'id' => $model->id]); 
+            } else {
+                Yii::$app->session->setFlash('error', 'Ошибка при отклонении статьи');
+            }
         }
+
+        return $this->render('update', [
+            'model' => $model,
+        ]);
     }
-
-    return $this->render('update', [
-        'model' => $model,
-    ]);
-}
-
-
 }

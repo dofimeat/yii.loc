@@ -9,6 +9,8 @@ use app\models\ArticleForm;
 use app\models\Comment;
 use yii\web\NotFoundHttpException;
 use yii\filters\AccessControl;
+use yii\data\ActiveDataProvider;
+use yii\widgets\ListView;
 use Yii;
 
 class ArticleController extends Controller
@@ -43,40 +45,64 @@ class ArticleController extends Controller
 //     ];
 // }
 
-public function actionIndex($id)
-{
-    $article = $this->findModel($id);
-    $comments = Comment::find()->where(['article_id' => $article->id])->all(); 
+    public function actionIndex()
+    {
+        $dataProvider = new ActiveDataProvider([
+            'query' => Article::find()
+                ->where(['status_id' => 2]) 
+                ->orderBy(['created_at' => SORT_DESC]),
+            'pagination' => [
+                'pageSize' => 9,
+            ],
+        ]);
 
-    $newComment = new Comment();
-    
-    if ($newComment->load(Yii::$app->request->post())) {
-        $newComment->article_id = $article->id;
-        $newComment->user_id = Yii::$app->user->id;
-
-        if ($newComment->save()) {
-            Yii::$app->session->setFlash('success', 'Комментарий добавлен.');
-            return $this->redirect(['index', 'id' => $id]); 
-        }
+        return $this->render('index', [
+            'dataProvider' => $dataProvider,
+        ]);
     }
 
-    $this->layout = 'story';
-    return $this->render('index', [
-        'article' => $article,
-        'author' => $article->author,
-        'comments' => $comments, 
-        'newComment' => $newComment, 
-    ]);
-}
+        public function actionView($id)
+    {
+        $article = $this->findModel($id);
+        
+        if ($article->status_id !== 2) {
+            throw new NotFoundHttpException('Статья не найдена.');
+        }
+        
+        $newComment = new Comment();
+        
+        if (Yii::$app->request->isPost && !Yii::$app->user->isGuest) {
+            $newComment->article_id = $article->id;
+            $newComment->user_id = Yii::$app->user->id;
+            
+            if ($newComment->load(Yii::$app->request->post()) && $newComment->save()) {
+                Yii::$app->session->setFlash('success', 'Комментарий добавлен.');
+                return $this->refresh();
+            }
+        }
+
+        $comments = Comment::find()
+            ->where(['article_id' => $article->id])
+            ->with('user')
+            ->orderBy(['created_at' => SORT_DESC])
+            ->all();
+
+        return $this->render('view', [
+            'article' => $article,
+            'author' => $article->author,
+            'comments' => $comments,
+            'newComment' => $newComment,
+        ]);
+    }
 
     public function actionAll()
     {
-        $articles = Article::find()->with('author')->all();
-        $this->view->title = 'Все статьи';
+        // $articles = Article::find()->with('author')->all();
+        // $this->view->title = 'Все статьи';
         // var_dump($articles);
         // die;
-        $this->layout = 'story';
-        return $this->render('all', ['articles' => $articles]);
+        // $this->layout = 'story';
+        return $this->redirect(['index']);
     }
 
 public function actionAdd()

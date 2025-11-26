@@ -124,7 +124,7 @@ public function getImageUrl()
         $cleanPath = str_replace(['web/', 'img/', 'uploads/'], '', $this->img);
         
         if (file_exists('@web/img/' . $cleanPath)) {
-            return '/@img1/' . $cleanPath;
+            return '/@img/' . $cleanPath;
         }
         if (file_exists('@web/uploads/' . $cleanPath)) {
             return '/uploads/' . $cleanPath;
