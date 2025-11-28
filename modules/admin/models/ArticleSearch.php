@@ -5,62 +5,64 @@ namespace app\modules\admin\models;
 use yii\base\Model;
 use yii\data\ActiveDataProvider;
 use app\models\Article;
+use yii\bootstrap5\LinkPager;
 
 /**
  * ArticleSearch represents the model behind the search form of `app\models\Article`.
  */
 class ArticleSearch extends Article
 {
+    public $pageSize; 
+    
     /**
      * {@inheritdoc}
      */
     public function rules()
     {
         return [
-            [['id', 'user_id'], 'integer'],
-            [['title', 'name', 'content', 'img', 'created_at', 'updated_at'], 'safe'],
+            [['id', 'user_id', 'status_id', 'pageSize'], 'integer'], 
+            [['title', 'name', 'content', 'img', 'created_at', 'updated_at', 'reject_reason'], 'safe'],
         ];
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function scenarios()
-    {
-        // bypass scenarios() implementation in the parent class
-        return Model::scenarios();
     }
 
     /**
      * Creates data provider instance with search query applied
      *
      * @param array $params
-     * @param string|null $formName Form name to be used into `->load()` method.
      *
      * @return ActiveDataProvider
      */
-    public function search($params, $formName = null)
+    public function search($params)
     {
         $query = Article::find();
 
-        // add conditions that should always apply here
-
         $dataProvider = new ActiveDataProvider([
             'query' => $query,
+            'pagination' => [
+                'defaultPageSize' => 10, 
+                'pageSizeParam' => 'pageSize',
+            ],
+            'sort' => [
+                'defaultOrder' => [
+                    'created_at' => SORT_DESC,
+                ]
+            ],
         ]);
 
-        $this->load($params, $formName);
+        $this->load($params);
 
         if (!$this->validate()) {
-            // uncomment the following line if you do not want to return any records when validation fails
-            // $query->where('0=1');
             return $dataProvider;
         }
 
-        // grid filtering conditions
+        if ($this->pageSize) {
+            $dataProvider->pagination->pageSize = $this->pageSize;
+        }
+
         $query->andFilterWhere([
             'id' => $this->id,
-            'name' => $this->name,
+            'user_id' => $this->user_id,
+            'status_id' => $this->status_id,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ]);
@@ -68,7 +70,8 @@ class ArticleSearch extends Article
         $query->andFilterWhere(['like', 'title', $this->title])
             ->andFilterWhere(['like', 'name', $this->name])
             ->andFilterWhere(['like', 'content', $this->content])
-            ->andFilterWhere(['like', 'img', $this->img]);
+            ->andFilterWhere(['like', 'img', $this->img])
+            ->andFilterWhere(['like', 'reject_reason', $this->reject_reason]);
 
         return $dataProvider;
     }

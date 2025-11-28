@@ -5,7 +5,6 @@ use yii\helpers\StringHelper;
 
 /** @var app\models\Article $model */
 
-// Обрезаем текст
 $truncatedText = strip_tags($model->content);
 if (mb_strlen($truncatedText) > 120) {
     $truncatedText = StringHelper::truncate($truncatedText, 120, '...');

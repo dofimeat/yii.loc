@@ -11,6 +11,7 @@ use yii\web\NotFoundHttpException;
 use yii\filters\AccessControl;
 use yii\data\ActiveDataProvider;
 use yii\widgets\ListView;
+use app\models\ArticleSearch;
 use Yii;
 
 class ArticleController extends Controller
@@ -47,16 +48,11 @@ class ArticleController extends Controller
 
     public function actionIndex()
     {
-        $dataProvider = new ActiveDataProvider([
-            'query' => Article::find()
-                ->where(['status_id' => 2]) 
-                ->orderBy(['created_at' => SORT_DESC]),
-            'pagination' => [
-                'pageSize' => 9,
-            ],
-        ]);
+        $searchModel = new ArticleSearch(); 
+        $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
 
         return $this->render('index', [
+            'searchModel' => $searchModel, 
             'dataProvider' => $dataProvider,
         ]);
     }
