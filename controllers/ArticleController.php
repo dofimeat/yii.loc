@@ -57,7 +57,7 @@ class ArticleController extends Controller
         ]);
     }
 
-        public function actionView($id)
+    public function actionView($id)
     {
         $article = $this->findModel($id);
         

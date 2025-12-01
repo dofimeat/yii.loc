@@ -28,7 +28,6 @@ $this->params['breadcrumbs'][] = $this->title;
                 </div>
             <?php endif; ?>
             
-            <!-- Поле выбора количества статей -->
             <?php $form = ActiveForm::begin([
                 'method' => 'get',
                 'action' => ['index'],
@@ -54,7 +53,6 @@ $this->params['breadcrumbs'][] = $this->title;
         </div>
     </div>
 
-    <!-- Сводка -->
     <div class="summary mb-3 text-muted">
         <?= \yii\helpers\Html::encode($dataProvider->getTotalCount() ? 
             "Найдено " . $dataProvider->getTotalCount() . " статей" : 

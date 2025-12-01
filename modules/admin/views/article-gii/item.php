@@ -7,7 +7,7 @@ use yii\helpers\Html;
 
 <div class="card" style="height: 100%;">
     <div class="card-body">
-        <h2 class="card-title"><?= Html::encode($model->name) ?></h2>
+        <h2 class="card-title"><?= Html::encode($model->title) ?></h2>
         <p class="card-subtitle mb-2 text-body-secondary">
             Дата создания: <b><?=Html::encode(Yii::$app->formatter->asDatetime($model->created_at))?></b>
         </p>

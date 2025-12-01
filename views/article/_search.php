@@ -4,7 +4,7 @@ use yii\helpers\Html;
 use yii\bootstrap5\ActiveForm;
 
 /* @var $this yii\web\View */
-/* @var $model app\modules\admin\models\ArticleSearch */
+/* @var $model app\models\ArticleSearch */
 /* @var $form yii\widgets\ActiveForm */
 ?>
 
@@ -39,19 +39,6 @@ use yii\bootstrap5\ActiveForm;
                 'placeholder' => 'Введите имя автора',
                 'class' => 'form-control'
             ])->label('Автор') ?>
-        </div>
-
-        <div class="col-md-4">
-            <?= $form->field($model, 'status_id', [
-                'template' => '{label}{input}',
-                'labelOptions' => ['class' => 'form-label']
-            ])->dropDownList(
-                $model::getStatusList(),
-                [
-                    'prompt' => 'Все статусы',
-                    'class' => 'form-select'
-                ]
-            )->label('Статус') ?>
         </div>
 
         <div class="col-12">
