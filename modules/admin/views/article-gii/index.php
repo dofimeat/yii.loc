@@ -23,7 +23,6 @@ $statusList = ['' => 'Все статусы'] + $statusList;
         <?= Html::a('Создать статью', ['create'], ['class' => 'btn btn-success']) ?>
     </div>
 
-    <!-- Единая форма поиска -->
     <div class="card mb-4">
         <div class="card-header">
             <h5 class="mb-0">Поиск и фильтры</h5>
@@ -37,24 +36,23 @@ $statusList = ['' => 'Все статусы'] + $statusList;
                 ],
             ]); ?>
 
-            <!-- Первый ряд: сортировка, пагинация, статус -->
             <div class="col-md-4">
                 <?= $form->field($searchModel, 'sortBy', [
                     'template' => '{label}{input}',
                     'labelOptions' => ['class' => 'form-label']
-                ])->dropDownList([
-                    'created_at-desc' => 'По дате (новые сначала)',
-                    'created_at-asc' => 'По дате (старые сначала)',
-                    'title-asc' => 'По названию (А-Я)',
-                    'title-desc' => 'По названию (Я-А)',
-                    'author.login-asc' => 'По автору (А-Я)',
-                    'author.login-desc' => 'По автору (Я-А)',
-                    'status.name-asc' => 'По статусу (А-Я)',
-                    'status.name-desc' => 'По статусу (Я-А)',
-                ], [
-                    'prompt' => 'Выберите сортировку',
-                    'class' => 'form-select'
-                ])->label('Сортировка') ?>
+                    ])->dropDownList([
+                        'created_at-desc' => 'По дате (новые сначала)',
+                        'created_at-asc' => 'По дате (старые сначала)',
+                        'title-asc' => 'По названию статьи (А-Я)',
+                        'title-desc' => 'По названию статьи (Я-А)',
+                        'author.name-asc' => 'По автору (А-Я)',
+                        'author.name-desc' => 'По автору (Я-А)',
+                        'status.status-asc' => 'По статусу (А-Я)',
+                        'status.status-desc' => 'По статусу (Я-А)',
+                        ], [
+                            'prompt' => 'Выберите сортировку',
+                            'class' => 'form-select'
+                            ])->label('Сортировка') ?>
             </div>
 
             <div class="col-md-4">
@@ -65,7 +63,6 @@ $statusList = ['' => 'Все статусы'] + $statusList;
                     4 => '4 статьи',
                     10 => '10 статей', 
                     12 => '12 статей',
-                    18 => '18 статей',
                     0 => 'Все статьи'
                 ], [
                     'prompt' => 'Количество на странице',
@@ -83,11 +80,10 @@ $statusList = ['' => 'Все статусы'] + $statusList;
                         'prompt' => 'Все статусы',
                         'class' => 'form-select'
                     ]
-                )->label('Статус') ?>
+                )->label('Статус (по ID)') ?>
             </div>
 
-            <!-- Второй ряд: поиск по заголовку и автору -->
-            <div class="col-md-6">
+            <div class="col-md-4">
                 <div class="input-group">
                     <span class="input-group-text">
                         <i class="fas fa-search"></i>
@@ -102,12 +98,12 @@ $statusList = ['' => 'Все статусы'] + $statusList;
                 </div>
             </div>
 
-            <div class="col-md-6">
+            <div class="col-md-4">
                 <div class="input-group">
                     <span class="input-group-text">
                         <i class="fas fa-user"></i>
                     </span>
-                    <?= $form->field($searchModel, 'authorName', [
+                    <?= $form->field($searchModel, 'author_name', [
                         'options' => ['class' => 'mb-0 flex-grow-1'],
                         'inputOptions' => [
                             'class' => 'form-control',
@@ -117,7 +113,30 @@ $statusList = ['' => 'Все статусы'] + $statusList;
                 </div>
             </div>
 
-            <!-- Кнопки -->
+            <div class="col-md-4"></div>
+
+            <div class="col-md-4">
+                <?= $form->field($searchModel, 'created_at_from', [
+                    'template' => '{label}{input}',
+                    'labelOptions' => ['class' => 'form-label']
+                ])->input('date', [
+                    'class' => 'form-control',
+                    'placeholder' => 'Дата от...',
+                    'title' => 'Выберите начальную дату'
+                ])->label('Дата создания (от)') ?>
+            </div>
+
+            <div class="col-md-4">
+                <?= $form->field($searchModel, 'created_at_to', [
+                    'template' => '{label}{input}',
+                    'labelOptions' => ['class' => 'form-label']
+                ])->input('date', [
+                    'class' => 'form-control',
+                    'placeholder' => 'Дата до...',
+                    'title' => 'Выберите конечную дату'
+                ])->label('Дата создания (до)') ?>
+            </div> 
+
             <div class="col-12">
                 <div class="d-flex gap-2">
                     <?= Html::submitButton('<i class="fas fa-search me-1"></i> Применить фильтры', [
@@ -145,16 +164,21 @@ $statusList = ['' => 'Все статусы'] + $statusList;
             
             $message = "Показано статьи $from-$to из $total";
             
-            // Добавляем информацию о фильтрах
             $filters = [];
             if ($searchModel->title) {
                 $filters[] = "заголовок: «{$searchModel->title}»";
             }
-            if ($searchModel->authorName) {
-                $filters[] = "автор: «{$searchModel->authorName}»";
+            if ($searchModel->author_name) {
+                $filters[] = "автор: «{$searchModel->author_name}»";
             }
             if ($searchModel->status_id && isset($statusList[$searchModel->status_id])) {
-                $filters[] = "статус: {$statusList[$searchModel->status_id]}";
+                $filters[] = "ID статуса: {$statusList[$searchModel->status_id]}";
+            }
+            if ($searchModel->created_at_from) {
+                $filters[] = "дата от: {$searchModel->created_at_from}";
+            }
+            if ($searchModel->created_at_to) {
+                $filters[] = "дата до: {$searchModel->created_at_to}";
             }
             
             if (!empty($filters)) {
@@ -164,7 +188,7 @@ $statusList = ['' => 'Все статусы'] + $statusList;
             echo \yii\helpers\Html::encode($message);
         } else {
             echo "Статьи не найдены";
-            if ($searchModel->title || $searchModel->authorName || $searchModel->status_id) {
+            if ($searchModel->title || $searchModel->author_name || $searchModel->status_id || $searchModel->created_at_from || $searchModel->created_at_to) {
                 echo ". Попробуйте изменить параметры поиска.";
             }
         }

@@ -14,8 +14,10 @@ class ArticleSearch extends Article
 {
     public $pageSize; 
     public $sortBy; 
-    public $authorName;
-    public $searchQuery;
+    public $author_name;
+    public $status_name;
+    public $created_at_from; 
+    public $created_at_to;   
     
     /**
      * {@inheritdoc}
@@ -24,7 +26,8 @@ class ArticleSearch extends Article
     {
         return [
             [['id', 'user_id', 'status_id', 'pageSize'], 'integer'], 
-            [['title', 'name', 'content', 'img', 'created_at', 'updated_at', 'reject_reason', 'sortBy', 'authorName', 'searchQuery'], 'safe'],
+            [['title', 'name', 'content', 'img', 'created_at', 'updated_at', 'reject_reason', 'sortBy', 'author_name', 'status_name', 'created_at_from', 'created_at_to'], 'safe'],
+            [['created_at_from', 'created_at_to'], 'date', 'format' => 'php:Y-m-d'], 
         ];
     }
 
@@ -36,11 +39,13 @@ class ArticleSearch extends Article
         return array_merge(parent::attributeLabels(), [
             'pageSize' => 'Количество на странице',
             'sortBy' => 'Сортировка',
-            'authorName' => 'Автор',
-            'searchQuery' => 'Общий поиск',
+            'author_name' => 'Автор',
+            'status_name' => 'Статус',
+            'created_at_from' => 'Дата создания (от)', 
+            'created_at_to' => 'Дата создания (до)',   
             'id' => 'ID',
             'user_id' => 'ID автора',
-            'status_id' => 'Статус',
+            'status_id' => 'ID статуса',
             'title' => 'Заголовок',
             'name' => 'Название',
             'content' => 'Содержание',
@@ -58,7 +63,15 @@ class ArticleSearch extends Article
      */
     public function search($params)
     {
-        $query = Article::find()->joinWith(['author', 'status']);
+        $query = Article::find()
+            ->joinWith([
+                'author' => function($query) {
+                    $query->from(['author' => 'user']);
+                },
+                'status' => function($query) {
+                    $query->from(['status' => 'status']);
+                }
+            ]);
 
         $dataProvider = new ActiveDataProvider([
             'query' => $query,
@@ -71,33 +84,42 @@ class ArticleSearch extends Article
                     'created_at' => SORT_DESC,
                 ],
                 'attributes' => [
-                    'created_at' => [
-                        'label' => 'По дате',
-                        'asc' => ['created_at' => SORT_ASC],
-                        'desc' => ['created_at' => SORT_DESC],
-                        'default' => SORT_DESC,
+                    'id' => [
+                        'asc' => ['article.id' => SORT_ASC],
+                        'desc' => ['article.id' => SORT_DESC],
+                        'label' => 'ID',
                     ],
                     'title' => [
-                        'label' => 'По названию',
-                        'asc' => ['title' => SORT_ASC],
-                        'desc' => ['title' => SORT_DESC],
-                        'default' => SORT_ASC,
+                        'asc' => ['article.title' => SORT_ASC],
+                        'desc' => ['article.title' => SORT_DESC],
+                        'label' => 'Заголовок',
                     ],
-                    'author.login' => [
-                        'label' => 'По автору',
-                        'asc' => ['user.login' => SORT_ASC],
-                        'desc' => ['user.login' => SORT_DESC],
-                        'default' => SORT_ASC,
+                    'created_at' => [
+                        'asc' => ['article.created_at' => SORT_ASC],
+                        'desc' => ['article.created_at' => SORT_DESC],
+                        'label' => 'Дата создания',
+                        'default' => SORT_DESC,
                     ],
-                    'status.name' => [
-                        'label' => 'По статусу',
-                        'asc' => ['status.name' => SORT_ASC],
-                        'desc' => ['status.name' => SORT_DESC],
-                        'default' => SORT_ASC,
+                    'updated_at' => [
+                        'asc' => ['article.updated_at' => SORT_ASC],
+                        'desc' => ['article.updated_at' => SORT_DESC],
+                        'label' => 'Дата обновления',
                     ],
                 ],
             ],
         ]);
+
+        $dataProvider->sort->attributes['author.name'] = [
+            'asc' => ['author.name' => SORT_ASC],
+            'desc' => ['author.name' => SORT_DESC],
+            'label' => 'Автор',
+        ];
+
+        $dataProvider->sort->attributes['status.status'] = [
+            'asc' => ['status.name' => SORT_ASC], 
+            'desc' => ['status.name' => SORT_DESC],
+            'label' => 'Статус',
+        ];
 
         $this->load($params);
 
@@ -105,40 +127,46 @@ class ArticleSearch extends Article
             return $dataProvider;
         }
 
-        if (!empty($this->searchQuery)) {
-            $query->andWhere([
-                'or',
-                ['like', 'article.title', $this->searchQuery],
-                ['like', 'article.name', $this->searchQuery],
-                ['like', 'article.content', $this->searchQuery],
-                ['like', 'user.name', $this->searchQuery],
-                ['like', 'user.login', $this->searchQuery],
-                ['like', 'article.reject_reason', $this->searchQuery],
-            ]);
-        }
-
-        $query->andFilterWhere(['like', 'article.title', $this->title])
-            ->andFilterWhere(['like', 'article.name', $this->name]);
-
-        if (!empty($this->authorName)) {
-            $query->andWhere(['like', 'user.name', $this->authorName]);
+        if (!empty($this->created_at_from) && !empty($this->created_at_to)) {
+            $query->andFilterWhere(['between', 'DATE(article.created_at)', $this->created_at_from, $this->created_at_to]);
+        } elseif (!empty($this->created_at_from)) {
+            $query->andFilterWhere(['>=', 'DATE(article.created_at)', $this->created_at_from]);
+        } elseif (!empty($this->created_at_to)) {
+            $query->andFilterWhere(['<=', 'DATE(article.created_at)', $this->created_at_to]);
         }
 
         $query->andFilterWhere([
             'article.id' => $this->id,
             'article.user_id' => $this->user_id,
             'article.status_id' => $this->status_id,
-            'article.created_at' => $this->created_at,
             'article.updated_at' => $this->updated_at,
         ]);
 
-        $query->andFilterWhere(['like', 'article.content', $this->content])
+        $query->andFilterWhere(['like', 'article.title', $this->title])
+            ->andFilterWhere(['like', 'article.name', $this->name])
+            ->andFilterWhere(['like', 'article.content', $this->content])
             ->andFilterWhere(['like', 'article.img', $this->img])
             ->andFilterWhere(['like', 'article.reject_reason', $this->reject_reason]);
 
+        if (!empty($this->author_name)) {
+            $query->andFilterWhere(['like', 'author.name', $this->author_name]);
+        }
+
+        if (!empty($this->status_name)) {
+            $query->andFilterWhere(['like', 'status.name', $this->status_name]);
+        }
+
         if ($this->sortBy) {
             list($attribute, $direction) = explode('-', $this->sortBy);
-            $dataProvider->sort->defaultOrder = [$attribute => $direction == 'asc' ? SORT_ASC : SORT_DESC];
+            
+            if (isset($dataProvider->sort->attributes[$attribute])) {
+                $order = $direction === 'asc' ? SORT_ASC : SORT_DESC;
+                
+                $sortParam = ($direction === 'desc' ? '-' : '') . $attribute;
+                $_GET['sort'] = $sortParam;
+                
+                $dataProvider->sort->params = $_GET;
+            }
         }
 
         if ($this->pageSize) {

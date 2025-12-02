@@ -11,6 +11,9 @@ use yii\helpers\Html;
         <p class="card-subtitle mb-2 text-body-secondary">
             Дата создания: <b><?=Html::encode(Yii::$app->formatter->asDatetime($model->created_at))?></b>
         </p>
+        <p class="card-subtitle mb-2 text-body-secondary">
+            Автор:  <b><?= Html::encode($model->author->name)?></b>
+        </p>
         <p class="card-text">
             <?= Html::encode($model->content) ?>
         </p>
