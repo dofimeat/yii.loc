@@ -47,6 +47,7 @@ $this->registerLinkTag(['rel' => 'icon', 'type' => 'image/x-icon', 'href' => Yii
         $menuItems[] = ['label' => 'Регистрация', 'url' => ['/site/register']];
     } else {
         $menuItems[] = ['label' => 'Личный кабинет', 'url' => ['/account/profile']];
+        $menuItems[] = ['label' => 'Информация о аккаунте', 'url' => ['/site/user-info']];
         
         if (method_exists(Yii::$app->user->identity, 'isAdmin') && Yii::$app->user->identity->isAdmin()) {
             $menuItems[] = ['label' => 'Панель администратора', 'url' => ['/admin']];
