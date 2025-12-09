@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Все статьи | DofiMeat</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/web/css/site.css">
+    <style>
+        
+        /* Отступ для основного контента */
+        body {
+            padding-top: 76px;
+            min-height: 100vh;
+            overflow-y: auto;
+        }
+        
+        /* Основной контент */
+        .front-main {
+            min-height: calc(100vh - 76px);
+            padding: 20px 0;
+        }
+        
+        /* Стили для карточек статей */
+        .article-card {
+            transition: all 0.3s ease;
+            border: 1px solid #e9ecef;
+            border-radius: 10px;
+            overflow: hidden;
+            height: 100%;
+        }
+        
+        .article-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        }
+        
+        .article-image {
+            height: 200px;
+            width: 100%;
+            object-fit: cover;
+        }
+        
+        .article-status {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 0.8rem;
+            padding: 3px 10px;
+            border-radius: 20px;
+        }
+        
+        .article-status-published {
+            background-color: #28a745;
+            color: white;
+        }
+        
+        .article-status-draft {
+            background-color: #6c757d;
+            color: white;
+        }
+        
+        .article-status-moderation {
+            background-color: #ffc107;
+            color: #212529;
+        }
+        
+        .article-meta {
+            font-size: 0.85rem;
+            color: #6c757d;
+        }
+        
+        .article-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 0.5rem;
+            line-height: 1.3;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        
+        .article-excerpt {
+            color: #718096;
+            font-size: 0.95rem;
+            line-height: 1.5;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            margin-bottom: 1rem;
+        }
+        
+        .article-footer {
+            border-top: 1px solid #e9ecef;
+            padding-top: 1rem;
+            margin-top: auto;
+        }
+        
+        /* Стили для пагинации */
+        .pagination {
+            margin-top: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .page-link {
+            color: #30b8bd;
+            border: 1px solid #dee2e6;
+        }
+        
+        .page-link:hover {
+            color: #259a9f;
+            background-color: #e9ecef;
+            border-color: #dee2e6;
+        }
+        
+        .page-item.active .page-link {
+            background-color: #30b8bd;
+            border-color: #30b8bd;
+            color: white;
+        }
+        
+        /* Стили для фильтров */
+        .filter-card {
+            border: 1px solid #e9ecef;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+        
+        .filter-card .card-header {
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+            padding: 1rem 1.25rem;
+        }
+        
+        .filter-card .card-body {
+            padding: 1.5rem;
+        }
+        
+        .form-label {
+            font-weight: 500;
+            color: #495057;
+            margin-bottom: 0.5rem;
+        }
+        
+        .form-select, .form-control {
+            border: 1px solid #ced4da;
+            border-radius: 8px;
+            padding: 0.5rem 0.75rem;
+            transition: all 0.3s ease;
+        }
+        
+        .form-select:focus, .form-control:focus {
+            border-color: #30b8bd;
+            box-shadow: 0 0 0 0.25rem rgba(48, 184, 189, 0.25);
+        }
+        
+        .input-group-text {
+            background-color: #f8f9fa;
+            border: 1px solid #ced4da;
+            border-right: none;
+        }
+        
+        /* Стили для summary */
+        .summary {
+            background-color: #f8f9fa;
+            padding: 1rem;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            color: #6c757d;
+            border-left: 4px solid #30b8bd;
+        }
+        
+        /* Анимации */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .article-card {
+            animation: fadeInUp 0.5s ease forwards;
+            opacity: 0;
+        }
+        
+        .article-card:nth-child(1) { animation-delay: 0.1s; }
+        .article-card:nth-child(2) { animation-delay: 0.2s; }
+        .article-card:nth-child(3) { animation-delay: 0.3s; }
+        .article-card:nth-child(4) { animation-delay: 0.4s; }
+        .article-card:nth-child(5) { animation-delay: 0.5s; }
+        .article-card:nth-child(6) { animation-delay: 0.6s; }
+        
+        /* Адаптивные стили */
+        @media (max-width: 768px) {
+            body {
+                padding-top: 70px;
+            }
+            
+            .front-main {
+                min-height: calc(100vh - 70px);
+                padding: 15px 0;
+            }
+            
+            .article-card {
+                margin-bottom: 1rem;
+            }
+        }
+        
+        /* Стили для футера */
+        .footer {
+            background: linear-gradient(to right, #1a1a2e, #16213e);
+            color: white;
+            padding: 40px 0 20px;
+            margin-top: auto;
+        }
+        
+        .footer-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .footer-logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: white;
+        }
+        
+        .footer-links {
+            display: flex;
+            gap: 30px;
+        }
+        
+        .footer-link {
+            color: rgba(255, 255, 255, 0.7);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+        
+        .footer-link:hover {
+            color: white;
+        }
+        
+        .footer-bottom {
+            text-align: center;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 0.9rem;
+        }
+        
+        /* Кастомный скроллбар */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #30b8bd;
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: #259a9f;
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <nav class="navbar navbar-expand-lg">
+            <div class="container">
+                <a class="navbar-brand" href="index.html">
+                    <i class="fas fa-book-open me-2"></i>
+                    <span class="brand-text">DofiMeat</span>
+                </a>
+                
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav me-auto">
+                        <li class="nav-item">
+                            <a class="nav-link" href="index.html">Главная</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link active" href="articles.html">Статьи</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="about.html">О нас</a>
+                        </li>
+                    </ul>
+                    <ul class="navbar-nav">
+                        <li class="nav-item">
+                            <a class="nav-link" href="login.html">Вход</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="register.html">Регистрация</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <main class="front-main">
+        <div class="page-content">
+            <div class="container">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h1 class="mb-0">Все статьи</h1>
+                    <div>
+                        <div class="alert alert-warning mb-0 d-inline-block">
+                            Для написания статьи - <a href="login.html" class="alert-link">авторизуйтесь</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card filter-card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">Поиск и фильтры</h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="filterForm" class="row g-3">
+                            <div class="col-md-4">
+                                <label for="sortBy" class="form-label">Сортировка</label>
+                                <select class="form-select" id="sortBy" name="sortBy">
+                                    <option value="">Выберите сортировку</option>
+                                    <option value="created_at-desc">По дате (новые сначала)</option>
+                                    <option value="created_at-asc">По дате (старые сначала)</option>
+                                    <option value="title-asc">По названию (А-Я)</option>
+                                    <option value="title-desc">По названию (Я-А)</option>
+                                    <option value="author-asc">По автору (А-Я)</option>
+                                    <option value="author-desc">По автору (Я-А)</option>
+                                </select>
+                            </div>
+
+                            <div class="col-md-4">
+                                <label for="pageSize" class="form-label">Показывать</label>
+                                <select class="form-select" id="pageSize" name="pageSize">
+                                    <option value="">Количество на странице</option>
+                                    <option value="4">4 статьи</option>
+                                    <option value="10">10 статей</option>
+                                    <option value="12">12 статей</option>
+                                    <option value="18">18 статей</option>
+                                    <option value="0">Все статьи</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="status" class="form-label">Статус</label>
+                                <select class="form-select" id="status" name="status">
+                                    <option value="">Все статусы</option>
+                                    <option value="published">Опубликовано</option>
+                                    <option value="draft">Черновик</option>
+                                    <option value="moderation">На модерации</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="input-group">
+                                    <span class="input-group-text">
+                                        <i class="fas fa-search"></i>
+                                    </span>
+                                    <input type="text" class="form-control" id="title" name="title" placeholder="Поиск по заголовку...">
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="input-group">
+                                    <span class="input-group-text">
+                                        <i class="fas fa-user"></i>
+                                    </span>
+                                    <input type="text" class="form-control" id="authorName" name="authorName" placeholder="Поиск по автору...">
+                                </div>
+                            </div>
+
+                            <div class="col-12">
+                                <div class="d-flex gap-2">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-search me-1"></i> Применить фильтры
+                                    </button>
+                                    <a href="articles.html" class="btn btn-outline-secondary">
+                                        <i class="fas fa-times me-1"></i> Сбросить все
+                                    </a>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="summary mb-3">
+                    Показано статьи 1-3 из 3
+                </div>
+                <div class="row g-4" id="articlesList">
+                    <div class="col-lg-4 col-md-6">
+                        <div class="card article-card">
+                            <div class="position-relative">
+                                <img src="/web/img/26462.jpg" class="card-img-top article-image" alt="Изображение статьи">
+                                <span class="article-status article-status-published">Опубликовано</span>
+                            </div>
+                            <div class="card-body d-flex flex-column">
+                                <div class="article-meta mb-2">
+                                    <i class="fas fa-user me-1"></i> hook
+                                    <span class="mx-2">•</span>
+                                    <i class="fas fa-calendar me-1"></i> 15.12.2025
+                                </div>
+                                <h5 class="article-title">сайт на php</h5>
+                                <p class="article-excerpt">
+                                    сегодня я расскажу как в первую очередь научиться кодить на php
+                                </p>
+                                <div class="article-footer mt-auto">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <a href="article-detail.html" class="btn btn-sm btn-outline-primary">
+                                            Читать <i class="fas fa-arrow-right ms-1"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-4 col-md-6">
+                        <div class="card article-card">
+                            <div class="position-relative">
+                                <img src="/web/img/programmisti-kartinki-17_1.jpg" class="card-img-top article-image" alt="Изображение статьи">
+                                <span class="article-status article-status-moderation">На модерации</span>
+                            </div>
+                            <div class="card-body d-flex flex-column">
+                                <div class="article-meta mb-2">
+                                    <i class="fas fa-user me-1"></i> fog
+                                    <span class="mx-2">•</span>
+                                    <i class="fas fa-calendar me-1"></i> 10.12.2025
+                                </div>
+                                <h5 class="article-title">тест</h5>
+                                <p class="article-excerpt">
+                                    веб-мастер 5 лет коммерческого опыта, двое детей, разведен
+                                </p>
+                                <div class="article-footer mt-auto">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <a href="article-detail.html" class="btn btn-sm btn-outline-primary">
+                                            Читать <i class="fas fa-arrow-right ms-1"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-4 col-md-6">
+                        <div class="card article-card">
+                            <div class="position-relative">
+                                <img src="/web/img/x5plRFJuvd.jpg" class="card-img-top article-image" alt="Изображение статьи">
+                                <span class="article-status article-status-published">Опубликовано</span>
+                            </div>
+                            <div class="card-body d-flex flex-column">
+                                <div class="article-meta mb-2">
+                                    <i class="fas fa-user me-1"></i> fog
+                                    <span class="mx-2">•</span>
+                                    <i class="fas fa-calendar me-1"></i> 05.12.2025
+                                </div>
+                                <h5 class="article-title">3 статья 321</h5>
+                                <p class="article-excerpt">
+                                    Это текст третьей статьи.321321
+                                </p>
+                                <div class="article-footer mt-auto">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <a href="article-detail.html" class="btn btn-sm btn-outline-primary">
+                                            Читать <i class="fas fa-arrow-right ms-1"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <nav aria-label="Навигация по страницам">
+                    <ul class="pagination justify-content-center mt-4">
+                        <li class="page-item disabled">
+                            <a class="page-link" href="#" tabindex="-1" aria-disabled="true">
+                                <i class="fas fa-chevron-left"></i>
+                            </a>
+                        </li>
+                        <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                        <li class="page-item"><a class="page-link" href="#">2</a></li>
+                        <li class="page-item"><a class="page-link" href="#">3</a></li>
+                        <li class="page-item"><a class="page-link" href="#">4</a></li>
+                        <li class="page-item">
+                            <a class="page-link" href="#">
+                                <i class="fas fa-chevron-right"></i>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-logo">
+                    <i class="fas fa-book-open me-2"></i>DofiMeat
+                </div>
+                
+                <div class="footer-links">
+                    <a href="about.html" class="footer-link">О нас</a>
+                    <a href="#" class="footer-link">Контакты</a>
+                    <a href="#" class="footer-link">Помощь</a>
+                    <a href="#" class="footer-link">Политика конфиденциальности</a>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 DofiMeat. Все права защищены.</p>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>
